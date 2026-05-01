@@ -6,7 +6,6 @@ const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children, currentUserId }) {
   const [notifications, setNotifications] = useState([]);
-  const [visibleNotifications, setVisibleNotifications] = useState([]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -20,13 +19,7 @@ export function NotificationProvider({ children, currentUserId }) {
       const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-      setNotifications(items);
-      setVisibleNotifications(items);
-
-      // ⏱️ AUTO HIDE AFTER 5 SECONDS
-      setTimeout(() => {
-        setVisibleNotifications([]);
-      }, 5000);
+      setNotifications(items); // ✅ ALWAYS SHOW
     });
 
     return unsub;
@@ -50,7 +43,7 @@ export function NotificationProvider({ children, currentUserId }) {
   return (
     <NotificationContext.Provider
       value={{
-        notifications: visibleNotifications, // 👈 IMPORTANT CHANGE
+        notifications,
         unreadCount,
         markAllRead,
         markRead

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Code, History, GitCommitHorizontal, Settings, ShieldOff } from 'lucide-react';
+import { ArrowLeft, Code, History, GitCommitHorizontal, Settings } from 'lucide-react';
 import FileTree from '@/components/repo/FileTree';
 import CodeViewer from '@/components/repo/CodeViewer';
 import CommitHistory from '@/components/repo/CommitHistory';
@@ -17,9 +17,10 @@ import { Roles, hasRoleAtLeast, normalizeRole } from '@/utils/rbac';
 
 export default function RepoView() {
   const { id: repoId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { repos, repoAccess, files, canUserAccessFileJit } = useData();
+  const { repos, repoAccess } = useData();
 
   const repo = repos.find(r => r.id === repoId);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -32,26 +33,26 @@ export default function RepoView() {
     );
   }
 
-  const hasRepoAccess = normalizeRole(currentUser.role) === Roles.Admin
-    || repo.owner === currentUser.id
-    || repoAccess.some(a => a.userId === currentUser.id && a.repoId === repo.id);
+  const hasRepoAccess =
+    normalizeRole(currentUser.role) === Roles.Admin ||
+    repo.owner === currentUser.id ||
+    repoAccess.some(a => a.userId === currentUser.id && a.repoId === repo.id);
 
   if (!hasRepoAccess) return <Unauthorized />;
 
   const isWritePlus = hasRoleAtLeast(normalizeRole(currentUser.role), Roles.Write);
 
-  // When a file is selected in the Code tab, check if they can actually view it.
-  // If it's restricted and they have no access, CodeViewer will show the Request Access UI.
-  // But we still let them select it — CodeViewer handles the locked state.
-
-  const handleSelectFile = (file) => {
-    setSelectedFile(file);
-  };
+  // Read ?tab= from URL — defaults to 'code'
+  const defaultTab = searchParams.get('tab') || 'code';
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-muted-foreground">
+        <Button
+          variant="ghost" size="icon"
+          onClick={() => navigate('/dashboard')}
+          className="text-muted-foreground"
+        >
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div>
@@ -63,31 +64,30 @@ export default function RepoView() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* File Tree */}
         <div className="lg:col-span-2 bg-card rounded-lg border border-border p-3">
-          <FileTree repoId={repoId} selectedFile={selectedFile} onSelectFile={handleSelectFile} />
+          <FileTree repoId={repoId} selectedFile={selectedFile} onSelectFile={setSelectedFile} />
         </div>
 
         {/* Main Content */}
         <div className="lg:col-span-7">
-          <Tabs defaultValue="code" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="bg-secondary border border-border mb-4">
               <TabsTrigger value="code" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
-                <Code className="w-3.5 h-3.5" />Code
+                <Code className="w-3.5 h-3.5" /> Code
               </TabsTrigger>
               <TabsTrigger value="history" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
-                <History className="w-3.5 h-3.5" />History
+                <History className="w-3.5 h-3.5" /> History
               </TabsTrigger>
               {isWritePlus && (
                 <TabsTrigger value="commit" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
-                  <GitCommitHorizontal className="w-3.5 h-3.5" />Commit
+                  <GitCommitHorizontal className="w-3.5 h-3.5" /> Commit
                 </TabsTrigger>
               )}
               <TabsTrigger value="settings" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
-                <Settings className="w-3.5 h-3.5" />Settings
+                <Settings className="w-3.5 h-3.5" /> Settings
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="code">
-              {/* Bug fix #2: If no file is selected, prompt them to pick one */}
               {!selectedFile ? (
                 <div className="flex flex-col items-center justify-center h-48 gap-3 text-muted-foreground border border-dashed border-border rounded-lg">
                   <Code className="w-8 h-8 opacity-30" />

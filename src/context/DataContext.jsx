@@ -11,7 +11,7 @@ import { Roles, canUserAccessFile, hasRoleAtLeast, normalizeRole } from "@/utils
 
 const DataContext = createContext(null);
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// helpers
 function snapToArray(snapshot) {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
@@ -28,7 +28,7 @@ export function DataProvider({ children }) {
   const [logs,           setLogs]           = useState([]);
   const [loading,        setLoading]        = useState(true);
 
-  // ── Real-time listeners ──────────────────────────────────────────────────
+  // Real-time listeners 
   useEffect(() => {
     const unsubs = [];
 
@@ -55,7 +55,6 @@ export function DataProvider({ children }) {
     };
   }, []);
 
-  // ── Derived shapes expected by components ────────────────────────────────
   // files as { [repoId]: [...] }
   const filesMap = files.reduce((acc, f) => {
     if (!acc[f.repoId]) acc[f.repoId] = [];
@@ -70,7 +69,7 @@ export function DataProvider({ children }) {
     return acc;
   }, {});
 
-  // ── RBAC helpers ──────────────────────────────────────────────────────────
+  // RBAC helpers 
   const getRepoRole = useCallback((userId, repoId) => {
     const u = users.find((x) => x.id === userId);
     if (!u) return null;
@@ -100,7 +99,7 @@ export function DataProvider({ children }) {
     return hasActiveJitGrant({ userId, repoId, path: file.path });
   }, [users, getRepoRole, hasActiveJitGrant]);
 
-  // ── Write helpers ─────────────────────────────────────────────────────────
+  // Write helpers 
   const addLog = useCallback(async (logEntry) => {
     await addDoc(collection(db, COL.LOGS), {
       ...logEntry,
@@ -418,6 +417,6 @@ export function useData() {
   return ctx;
 }
 
-// ── Backward-compat aliases so NO component file needs to change ────────────
+// ── Backward-compat aliases so NO component file needs to change 
 export { useData as useMockData };
 export { DataProvider as MockDataProvider };

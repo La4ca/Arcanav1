@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
 
           setCurrentUser(userData);
 
-          // ✅ IMPORTANT: read from Firestore
+          // read from Firestore
           setNdaAccepted(!!userData.ndaAccepted);
         } else {
           await signOut(auth);
@@ -71,7 +71,7 @@ export function AuthProvider({ children }) {
 
     setNdaAccepted(true);
 
-    // ✅ persist to Firestore
+    // persist to Firestore
     await updateDoc(doc(db, COL.USERS, currentUser.id), {
       ndaAccepted: true,
     });
