@@ -4,11 +4,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Code, History, GitCommitHorizontal, Settings } from 'lucide-react';
+import { ArrowLeft, Code, History, GitCommitHorizontal, Settings, Upload } from 'lucide-react';
 import FileTree from '@/components/repo/FileTree';
 import CodeViewer from '@/components/repo/CodeViewer';
 import CommitHistory from '@/components/repo/CommitHistory';
 import CommitForm from '@/components/repo/CommitForm';
+import UploadFileForm from '@/components/repo/UploadFileForm';
 import RepoSidebar from '@/components/repo/RepoSidebar';
 import RepoSettingsTab from '@/components/repo/RepoSettingsTab';
 import Unauthorized from '@/components/shared/Unauthorized';
@@ -82,6 +83,11 @@ export default function RepoView() {
                   <GitCommitHorizontal className="w-3.5 h-3.5" /> Commit
                 </TabsTrigger>
               )}
+              {isWritePlus && (
+                <TabsTrigger value="upload" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
+                  <Upload className="w-3.5 h-3.5" /> Upload
+                </TabsTrigger>
+              )}
               <TabsTrigger value="settings" className="font-mono text-xs gap-1.5 data-[state=active]:bg-accent">
                 <Settings className="w-3.5 h-3.5" /> Settings
               </TabsTrigger>
@@ -105,6 +111,12 @@ export default function RepoView() {
             {isWritePlus && (
               <TabsContent value="commit">
                 <CommitForm repoId={repoId} />
+              </TabsContent>
+            )}
+
+            {isWritePlus && (
+              <TabsContent value="upload">
+                <UploadFileForm repoId={repoId} />
               </TabsContent>
             )}
 
